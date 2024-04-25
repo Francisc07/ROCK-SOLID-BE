@@ -5,7 +5,8 @@ import cookieParser from 'cookie-parser';
 import logger from 'morgan';
 import helmet from 'helmet';
 import cors from 'cors';
-import {bdconnect} from '../src/config';
+import { client } from '../src/config';
+import { Users } from './models/Users';
 
 const app = express();
 
@@ -56,15 +57,15 @@ app.use(function (
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await bdconnect.connect();
+    await client.connect();
     // Send a ping to confirm a successful connection
-    await bdconnect.db('admin').command({ ping: 1 });
+    await client.db('admin').command({ ping: 1 });
     console.log(
       'Pinged your deployment. You successfully connected to MongoDB!'
     );
   } finally {
     // Ensures that the client will close when you finish/error
-    await bdconnect.close();
+    await client.close();
   }
 }
 run().catch(console.dir);
@@ -75,17 +76,18 @@ const collectionName = 'users';
 // operations on them.
 const database = client.db(dbName);
 const collection = database.collection(collectionName);
-
-async function getUsers() {
+app.get('/usuarios', async (req, res) => {
   try {
-    const cursor = await collection.find().sort({ name: 1 });
-    await cursor.forEach(user:USer => {
-      console.log(`${recipe.name} has ${recipe.ingredients.length} ingredients and takes ${recipe.prepTimeInMinutes} minutes to make.`);
-    });
+    const usuarios: Users[] = await collection.find().sort({ name: 1 });
+    res.send(usuarios);
     // add a linebreak
-    console.log();
+    console.log(usuarios);
   } catch (err) {
-    console.error(`Something went wrong trying to find the documents: ${err}\n`);
+    console.error(
+      `Something went wrong trying to find the documents: ${err}\n`
+    );
+    res.status(500).json({ message: 'Error al obtener usuarios' });
   }
-}
+});
+
 module.exports = app;
