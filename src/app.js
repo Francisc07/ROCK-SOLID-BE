@@ -20,7 +20,9 @@ const morgan_1 = __importDefault(require("morgan"));
 const helmet_1 = __importDefault(require("helmet"));
 const cors_1 = __importDefault(require("cors"));
 const config_1 = require("../src/config");
+const port = 3000;
 const app = (0, express_1.default)();
+app.set('view engine', 'ejs'); // Specify the default engine (e.g., 'ejs')
 const whitelist = ['http://localhost:3000', 'http://localhost:3001'];
 const corsOptions = {
     origin: function (origin, callback) {
@@ -74,7 +76,8 @@ const collectionName = 'users';
 // operations on them.
 const database = config_1.client.db(dbName);
 const collection = database.collection(collectionName);
-app.get('/usuarios', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+app.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    debugger;
     try {
         const usuarios = yield collection.find().sort({ name: 1 });
         res.send(usuarios);
@@ -86,4 +89,7 @@ app.get('/usuarios', (req, res) => __awaiter(void 0, void 0, void 0, function* (
         res.status(500).json({ message: 'Error al obtener usuarios' });
     }
 }));
+app.listen(port, () => {
+    console.log(`Example app listening on port ${port}`);
+});
 module.exports = app;

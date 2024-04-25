@@ -8,7 +8,9 @@ import cors from 'cors';
 import { client } from '../src/config';
 import { Users } from './models/Users';
 
+const port = 3000;
 const app = express();
+app.set('view engine', 'ejs'); // Specify the default engine (e.g., 'ejs')
 
 const whitelist = ['http://localhost:3000', 'http://localhost:3001'];
 
@@ -76,7 +78,8 @@ const collectionName = 'users';
 // operations on them.
 const database = client.db(dbName);
 const collection = database.collection(collectionName);
-app.get('/usuarios', async (req, res) => {
+app.get('/', async (req, res) => {
+  debugger;
   try {
     const usuarios: Users[] = await collection.find().sort({ name: 1 });
     res.send(usuarios);
@@ -89,5 +92,7 @@ app.get('/usuarios', async (req, res) => {
     res.status(500).json({ message: 'Error al obtener usuarios' });
   }
 });
-
+app.listen(port, () => {
+  console.log(`Example app listening on port ${port}`);
+});
 module.exports = app;
