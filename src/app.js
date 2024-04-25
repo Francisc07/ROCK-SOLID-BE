@@ -19,11 +19,58 @@ const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const morgan_1 = __importDefault(require("morgan"));
 const helmet_1 = __importDefault(require("helmet"));
 const cors_1 = __importDefault(require("cors"));
-const config_1 = require("../src/config");
+const config_1 = require("./config");
+// Set the absolute path to the views directory
 const port = 3000;
 const app = (0, express_1.default)();
-app.set('view engine', 'ejs'); // Specify the default engine (e.g., 'ejs')
+app.set('view engine', 'pug'); // Specify the default engine (e.g., 'ejs')
+app.set('views', path_1.default.join(__dirname, './views'));
 const whitelist = ['http://localhost:3000', 'http://localhost:3001'];
+const dbName = 'sample_mflix';
+const collectionName = 'users';
+function run() {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            // Connect the client to the server	(optional starting in v4.7)
+            yield config_1.client.connect();
+            // Send a ping to confirm a successful connection
+            yield config_1.client.db('admin').command({ ping: 1 });
+            console.log('Pinged your deployment. You successfully connected to MongoDB!');
+        }
+        finally {
+            // Ensures that the client will close when you finish/error
+            yield config_1.client.close();
+        }
+    });
+}
+run().catch(console.dir);
+// Create references to the database and collection in order to run
+// operations on them.
+let database = config_1.client.db(dbName);
+let collection = database.collection(collectionName);
+app.get('/', (req, res) => {
+    // Render a Pug view called 'index.pug'
+    res.render('index.pug'); // Include the file extension '.pug'
+});
+app.get('/usuarios', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        yield config_1.client.connect();
+        // Send a ping to confirm a successful connection
+        yield config_1.client.db('admin').command({ ping: 1 });
+        database = config_1.client.db(dbName);
+        collection = database.collection(collectionName);
+        const usuarios = yield collection.find({}).toArray();
+        usuarios.forEach((user) => {
+            console.log(`${user._id} has ${user.name} ${user.email}`);
+        });
+        res.send(usuarios);
+        // add a linebreak
+    }
+    catch (err) {
+        console.error(`Something went wrong trying to find the documents: ${err}\n`);
+        res.status(500).json({ message: 'Error al obtener usuarios' });
+    }
+}));
 const corsOptions = {
     origin: function (origin, callback) {
         if (whitelist.indexOf(origin) !== -1 || !origin) {
@@ -54,41 +101,6 @@ app.use(function (err, req, res, next) {
     res.status(err.status || 500);
     res.render('error');
 });
-function run() {
-    return __awaiter(this, void 0, void 0, function* () {
-        try {
-            // Connect the client to the server	(optional starting in v4.7)
-            yield config_1.client.connect();
-            // Send a ping to confirm a successful connection
-            yield config_1.client.db('admin').command({ ping: 1 });
-            console.log('Pinged your deployment. You successfully connected to MongoDB!');
-        }
-        finally {
-            // Ensures that the client will close when you finish/error
-            yield config_1.client.close();
-        }
-    });
-}
-run().catch(console.dir);
-const dbName = 'sample_mflix';
-const collectionName = 'users';
-// Create references to the database and collection in order to run
-// operations on them.
-const database = config_1.client.db(dbName);
-const collection = database.collection(collectionName);
-app.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    debugger;
-    try {
-        const usuarios = yield collection.find().sort({ name: 1 });
-        res.send(usuarios);
-        // add a linebreak
-        console.log(usuarios);
-    }
-    catch (err) {
-        console.error(`Something went wrong trying to find the documents: ${err}\n`);
-        res.status(500).json({ message: 'Error al obtener usuarios' });
-    }
-}));
 app.listen(port, () => {
     console.log(`Example app listening on port ${port}`);
 });
